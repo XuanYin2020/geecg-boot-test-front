@@ -12,9 +12,24 @@
         <div>
           <button @click="dialogVisible = true">新增</button>
           <div v-if="dialogVisible" class="custom-dialog">
-            <p>Are you sure you want to close this dialog?</p>
-            <button @click="handleClose(true)">Confirm</button>
-            <button @click="handleClose(false)">Cancel</button>
+            <h1>新增员工</h1>
+            <form @submit.prevent="postData">
+              <div>
+                <label for="">员工id：</label>
+                <input type="text" v-model="user.username">
+              </div>
+              <div>
+                <label for="">入职时间：</label>
+                <input type="date" v-model="user.takingdate">
+              </div>
+              <div>
+                <label for="">入职部门：</label>
+                <input type="text" v-model="user.department">
+              </div>
+              <button @click="handleClose(true)">Confirm</button>
+              <button @click="handleClose(false)">Cancel</button>
+            </form>
+
           </div>
         </div>
         <JVxeTable
@@ -28,13 +43,14 @@
           :disabled="formDisabled"
           :rowNumber="true"
           :rowSelection="true"
-          :toolbar="false"
+          :toolbar="true"
           />
       </a-tab-pane>
     </a-tabs>
   </BasicModal>
 </template>
 <script lang="ts" setup>
+
     import {ref, computed, unref,reactive} from 'vue';
     import {BasicModal, useModalInner} from '/@/components/Modal';
     import {BasicForm, useForm} from '/@/components/Form/index';
@@ -43,10 +59,22 @@
     import {formSchema,testCompanyEmployeeColumns} from '../TestCompany.data';
     import {saveOrUpdate,testCompanyEmployeeList} from '../TestCompany.api';
     import { VALIDATE_FAILED } from '/@/utils/common/vxeUtils'
-    // Emits声明
+    import ruleForm from "@/views/demo/form/RuleForm.vue";
+    import {rules} from "@/utils/helper/validator";
+    import {defHttp} from "@/utils/http/axios";
+
 
     const dialogVisible = ref(false);
+    const message = ref("Message");
+    const user = ref({
+      username: "",
+      takingdate: "",
+      department:""
+    });
 
+    let companyId= "";
+
+    // Emits声明
     const emit = defineEmits(['register','success']);
     const isUpdate = ref(true);
     const formDisabled = ref(false);
@@ -72,6 +100,9 @@
      */
      //表单赋值
     const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) => {
+        console.log("The data is");
+        console.log(data.record.id);
+        companyId = data.record.id;
         //重置表单
         await reset();
         setModalProps({confirmLoading: false,showCancelBtn:data?.showFooter,showOkBtn:data?.showFooter});
@@ -110,15 +141,29 @@
     const handleClose = (confirmed) => {
       if (confirmed) {
         // Handle the confirmation logic here
-        // For example, close the dialog and perform an action
+        console.log(user.value.username);
+        console.log(companyId);
+        console.log(user.value.takingdate);
+        let url = "/company/testCompany/addOneEmployee";
+        let params = {
+          id:companyId,
+          employeeId:user.value.username,
+          takingTime:user.value.takingdate,
+          partment:user.value.department
+        };
+        console.log(params);
+        defHttp.post({url: url, params});
         dialogVisible.value = false;
       } else {
+        console.log(user);
         // Close the dialog without performing any action
         dialogVisible.value = false;
       }
     };
 
-
+    const postData = ()=>{
+      console.log(message);
+    };
 
 
 
@@ -128,6 +173,9 @@
       testCompanyEmployeeTable.dataSource = [];
     }
     function classifyIntoFormData(allValues) {
+      console.log("classifyIntoFormData Method")
+      console.log(allValues)
+      console.log("----------------------")
          let main = Object.assign({}, allValues.formValue)
          return {
            ...main, // 展开
@@ -136,6 +184,9 @@
        }
     //表单提交事件
     async function requestAddOrEdit(values) {
+      console.log("requestAddOrEdit Method")
+      console.log(values)
+      console.log("----------------------")
         try {
             setModalProps({confirmLoading: true});
             //提交表单
