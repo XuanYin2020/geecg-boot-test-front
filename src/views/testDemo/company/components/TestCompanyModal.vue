@@ -246,4 +246,64 @@
   transform: translate(-50%, -50%);
   z-index: 1000;
 }
+/* 样式按钮 */
+button {
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* 自定义对话框样式 */
+.custom-dialog {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.custom-dialog h1 {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.custom-dialog label {
+  font-weight: bold;
+}
+
+.custom-dialog input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.custom-dialog button {
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.custom-dialog button:last-child {
+  margin-right: 0;
+}
+
+.custom-dialog button:hover {
+  background-color: #0056b3;
+}
+
 </style>
