@@ -40,6 +40,7 @@
   import { useListPage } from '/@/hooks/system/useListPage'
   import {useModal} from '/@/components/Modal';
   import TestCompanyModal from './components/TestCompanyModal.vue'
+  import TestCompanyEmployeeSubTable from "@/views/testDemo/company/subTables/TestCompanyEmployeeSubTable.vue";
   import {columns, searchFormSchema} from './TestCompany.data';
   import {list, deleteOne, batchDelete, getImportUrl,getExportUrl} from './TestCompany.api';
   import {downloadFile} from '/@/utils/common/renderUtils';
@@ -86,7 +87,7 @@
     * 新增事件
     */
   function handleAdd() {
-     openModal(true, {
+     openModal(true, { //用于打开/关闭弹窗
        isUpdate: false,
        showFooter: true,
      });

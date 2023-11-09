@@ -89,7 +89,7 @@ export const formSchema: FormSchema[] = [
 //子表表格配置
 export const testCompanyEmployeeColumns: JVxeColumn[] = [
     {
-      title: '员工id',
+      title: '员工的id',
       key: 'employeeId',
       type: JVxeTypes.select,
       options:[],

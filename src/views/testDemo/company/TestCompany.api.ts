@@ -11,7 +11,7 @@ enum Api {
   deleteBatch = '/company/testCompany/deleteBatch',
   importExcel = '/company/testCompany/importExcel',
   exportXls = '/company/testCompany/exportXls',
-  testCompanyEmployeeList = '/company/testCompany/queryTestCompanyEmployeeByMainId',
+  testCompanyEmployeeList = '/company/testCompany/queryTestCompanyEmployeeByMainId',//获得所有雇佣员工的数据
 }
 /**
  * 导出api

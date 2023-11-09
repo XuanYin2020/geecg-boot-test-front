@@ -1,12 +1,12 @@
 <template>
   <div>
-      <!--引用表格-->
-     <BasicTable bordered size="middle" :loading="loading" rowKey="id" :canResize="false" :columns="testCompanyEmployeeColumns" :dataSource="dataSource" :pagination="false">
-        <!--字段回显插槽-->
-        <template v-slot:bodyCell="{ column, record, index, text }">
-        </template>
-      </BasicTable>
-    </div>
+    <!--引用表格-->
+    <BasicTable bordered size="middle" :loading="loading" rowKey="id" :canResize="false" :columns="testCompanyEmployeeColumns" :dataSource="dataSource" :pagination="false">
+      <!--字段回显插槽-->
+      <template v-slot:bodyCell="{ column, record, index, text }">
+      </template>
+    </BasicTable>
+  </div>
 </template>
 
 <script lang="ts" setup>
