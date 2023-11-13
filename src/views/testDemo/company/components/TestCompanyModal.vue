@@ -11,6 +11,8 @@
       <a-tab-pane tab="入职的员工" key="testCompanyEmployee" :forceRender="true" :style="tabsStyle">
         <div>
           <button @click="openPopup">新增</button>
+          <button @click="deleteData">删除</button>
+          <button @click="onGetData">编辑</button>
           <!-- 自定义弹窗组件 -->
           <BasicModal @register="registerModal2" title="新增员工"
                       :showCancelBtn="false" :showOkBtn="false" >
@@ -35,7 +37,7 @@
           :height="340"
           :disabled="formDisabled"
           :rowNumber="true"
-          :rowSelection="false"
+          :rowSelection="true"
           :toolbar="false"
           />
       </a-tab-pane>
@@ -56,6 +58,7 @@
     import {rules} from "@/utils/helper/validator";
     import {defHttp} from "@/utils/http/axios";
     import dayjs from "dayjs";
+    import {array} from "vue-types";
 
     const dialogVisible = ref(false);
     const message = ref("Message");
@@ -188,7 +191,38 @@
       //详见 BasicModal模块
       openModal(true, {});// data: 传递到子组件的数据
     }
+    /**
+     * 编辑一个employee
+     */
+    async function editEmployee() {
+      //详见 BasicModal模块
+      openModal(true, {});// data: 传递到子组件的数据
+    }
+    /** 获取row, 删除row*/
+    function deleteData() {
+      const values = testCompanyEmployee.value!.getSelectionData()
+      console.log('删除row---获取值:', { values })
+      if(values.length == 0 ){
+        console.log('values are not defined')
+        alert("请选择待删除的员工信息")
+      }else{
+        console.log('获取值:',  values[0] )
+        let url = "/company/testCompany/deleteOneEmployee";
+        let params = {
+          id:values[0].id,
+        };
+        console.log(params);
+        defHttp.post({url: url, params});
+        closeModal();
+      }
 
+    }
+    /** 获取row, 删除row*/
+    function onGetData() {
+      // testCompanyEmployee.value!.clearSelection()
+      const values = testCompanyEmployee.value!.getSelectionData()
+
+    }
     /**
      * 重置
      */
@@ -380,7 +414,7 @@ button {
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #0055b3;
 }
 
 /* 自定义对话框样式 */
