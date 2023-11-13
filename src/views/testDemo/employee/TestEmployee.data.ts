@@ -28,6 +28,7 @@ export const columns: BasicColumn[] = [
     title: '头像',
     align:"center",
     dataIndex: 'images',
+    customRender:render.renderImage,
    },
    {
     title: '就职公司名字',
@@ -75,7 +76,9 @@ export const formSchema: FormSchema[] = [
   {
     label: '头像',
     field: 'images',
-    component: 'JEditor',
+    component: 'JImageUpload',
+    componentProps:{
+    },
   },
   {
     label: '就职公司id',

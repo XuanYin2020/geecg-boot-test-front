@@ -35,7 +35,7 @@
           :height="340"
           :disabled="formDisabled"
           :rowNumber="true"
-          :rowSelection="true"
+          :rowSelection="false"
           :toolbar="false"
           />
       </a-tab-pane>
@@ -99,6 +99,23 @@
         component: 'Input',
       },
       {
+        label: '头像上传',
+        field: 'uploadImage',
+        component: 'JImageUpload',
+        componentProps: {
+          //按钮显示文字
+          text:'图片上传',
+          //支持两种基本样式picture和picture-card
+          listType:'picture-card',
+          //用于控制文件上传的业务路径,默认temp
+          bizPath:'temp',
+          //是否禁用
+          disabled:false,
+          //最大上传数量
+          fileMax:1,
+        },
+      },
+      {
         label: '性别',
         field: 'sex',
         component: 'Select',
@@ -125,6 +142,12 @@
           //是否显示今天按钮
           showToday:true,
         },
+      },
+      {
+        label: '备注',
+        field: 'tinymce',
+        component: 'JEditor',
+        defaultValue: '备注信息',
       },
     ];
 

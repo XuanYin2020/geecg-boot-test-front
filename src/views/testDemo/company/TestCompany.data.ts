@@ -91,7 +91,7 @@ export const testCompanyEmployeeColumns: JVxeColumn[] = [
     {
       title: '员工的id',
       key: 'employeeId',
-      type: JVxeTypes.select,
+      type: JVxeTypes.normal,
       options:[],
       dictCode:"test_employee,name,id",
       width:"200px",
@@ -101,7 +101,7 @@ export const testCompanyEmployeeColumns: JVxeColumn[] = [
     {
       title: '入职时间',
       key: 'takingTime',
-      type: JVxeTypes.date,
+      type: JVxeTypes.normal,
       width:"200px",
       placeholder: '请输入${title}',
       defaultValue:'',
@@ -109,7 +109,7 @@ export const testCompanyEmployeeColumns: JVxeColumn[] = [
     {
       title: '入职部门',
       key: 'partment',
-      type: JVxeTypes.input,
+      type: JVxeTypes.normal,
       width:"200px",
       placeholder: '请输入${title}',
       defaultValue:'',
