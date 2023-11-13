@@ -10,27 +10,20 @@
      <!--子表单区域 -->
       <a-tab-pane tab="入职的员工" key="testCompanyEmployee" :forceRender="true" :style="tabsStyle">
         <div>
-          <button @click="dialogVisible = true">新增</button>
-          <div v-if="dialogVisible" class="custom-dialog">
-            <h1>新增员工</h1>
-            <form @submit.prevent="postData">
-              <div>
-                <label for="">员工id：</label>
-                <input type="text" v-model="user.username">
-              </div>
-              <div>
-                <label for="">入职时间：</label>
-                <input type="date" v-model="user.takingdate">
-              </div>
-              <div>
-                <label for="">入职部门：</label>
-                <input type="text" v-model="user.department">
-              </div>
-              <button @click="handleClose(true)">Confirm</button>
-              <button @click="handleClose(false)">Cancel</button>
-            </form>
-
-          </div>
+          <button @click="openPopup">新增</button>
+          <!-- 自定义弹窗组件 -->
+          <BasicModal @register="registerModal2" title="新增员工"
+                      :showCancelBtn="false" :showOkBtn="false" >
+            <!-- 自定义表单 -->
+            <BasicForm @register="registerForm2" @submit="submitUpdate" >
+              <template #formFooter>
+                <div style="margin: 0 auto">
+                  <a-button type="primary" @click="submitUpdate" class="mr-2"> 保存</a-button>
+                  <a-button type="error" @click="resetUpdate" class="mr-2"> 重置 </a-button>
+                </div>
+              </template>
+            </BasicForm>
+          </BasicModal>
         </div>
         <JVxeTable
           keep-source
@@ -43,7 +36,7 @@
           :disabled="formDisabled"
           :rowNumber="true"
           :rowSelection="true"
-          :toolbar="true"
+          :toolbar="false"
           />
       </a-tab-pane>
     </a-tabs>
@@ -52,8 +45,8 @@
 <script lang="ts" setup>
 
     import {ref, computed, unref,reactive} from 'vue';
-    import {BasicModal, useModalInner} from '/@/components/Modal';
-    import {BasicForm, useForm} from '/@/components/Form/index';
+    import {BasicModal,useModal , useModalInner} from '/@/components/Modal';
+    import {BasicForm, useForm,FormSchema} from '/@/components/Form/index';
     import { JVxeTable } from '/@/components/jeecg/JVxeTable'
     import { useJvxeMethod } from '/@/hooks/system/useJvxeMethods.ts'
     import {formSchema,testCompanyEmployeeColumns} from '../TestCompany.data';
@@ -62,7 +55,7 @@
     import ruleForm from "@/views/demo/form/RuleForm.vue";
     import {rules} from "@/utils/helper/validator";
     import {defHttp} from "@/utils/http/axios";
-
+    import dayjs from "dayjs";
 
     const dialogVisible = ref(false);
     const message = ref("Message");
@@ -88,13 +81,120 @@
           dataSource: [],
           columns:testCompanyEmployeeColumns
     })
-    //表单配置
+    //自定义表单字段
+    const formSchemas: FormSchema[] = [
+      {
+        label: '员工姓名',
+        field: 'name',
+        component: 'Input',
+      },
+      {
+        label: '员工Id',
+        field: 'Id',
+        component: 'Input',
+      },
+      {
+        label: '入职部门',
+        field: 'department',
+        component: 'Input',
+      },
+      {
+        label: '性别',
+        field: 'sex',
+        component: 'Select',
+        //填写组件Select的属性
+        componentProps: {
+          options: [
+            { label: '男', value: 1 },
+            { label: '女', value: 2 },
+            { label: '未知', value: 3 },
+          ],
+        },
+        //默认值
+        defaultValue: 3,
+      },
+      {
+        label: '入职时间',
+        field: 'dateSelect',
+        component: 'DatePicker',
+        componentProps: {
+          //日期格式化，页面上显示的值
+          format:'YYYY-MM-DD',
+          //返回值格式化（绑定值的格式）
+          valueFormat:'YYYY-MM-DD',
+          //是否显示今天按钮
+          showToday:true,
+        },
+      },
+    ];
+
+    /**
+     * BasicModal绑定注册;
+     */
+    const [registerModal2, { openModal }] = useModal();
+
+    /**
+     * BasicForm绑定注册;
+     */
+    const [registerForm2,{getFieldsValue}] = useForm({
+      //注册表单列
+      schemas: formSchemas,
+      showResetButton: true, //是否显示重置按钮
+      resetButtonOptions:{text:"重置2", preIcon: '' },
+      submitButtonOptions: { text: '保存', preIcon: '' },
+      actionColOptions: { span: 17 },
+      //隐藏操作按钮
+      showActionButtonGroup: false,
+    });
+
+    /**
+     * BasicForm绑定注册;表单配置
+     *  useForm 是整个框架的核心用于表单渲染，里边封装了很多公共方法;
+     */
     const [registerForm, {setProps,resetFields, setFieldsValue, validate}] = useForm({
         //labelWidth: 150,
-        schemas: formSchema,
+        schemas: formSchema,//注册表单列
         showActionButtonGroup: false,
         baseColProps: {span: 24}
     });
+
+    /**
+     * 打开弹窗
+     */
+    async function openPopup() {
+      //详见 BasicModal模块
+      openModal(true, {});// data: 传递到子组件的数据
+    }
+
+    /**
+     * 重置
+     */
+    async function resetUpdate() {
+      //使用useForm方法resetFields清空值
+      await resetFields();
+    }
+
+    /**
+     * 关闭弹窗，点击提交按钮的value值
+     * @param values
+     */
+    async function submitUpdate(values: any) {
+      //获取所有值
+      let fieldsValue = await getFieldsValue();
+      console.log('提交按钮数据::::', values);
+      console.log('提交按钮数据fieldsValue::::', fieldsValue);
+      let url = "/company/testCompany/addOneEmployee";
+      let params = {
+        id:companyId,
+        employeeId:fieldsValue.Id,
+        takingTime:fieldsValue.dateSelect,
+        partment:fieldsValue.department,
+      };
+      console.log(params);
+      defHttp.post({url: url, params});
+      closeModal();
+    }
+
     /**
      * useModalInner() 用于独立的 Modal 内部调用
      */
@@ -304,6 +404,15 @@ button:hover {
 
 .custom-dialog button:hover {
   background-color: #0056b3;
+}
+
+/** 时间和数字输入框样式 */
+:deep(.ant-input-number) {
+  width: 100%;
+}
+
+:deep(.ant-picker) {
+  width: 100%;
 }
 
 </style>
