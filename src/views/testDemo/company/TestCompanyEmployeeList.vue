@@ -110,6 +110,7 @@
      * 编辑事件
      */
     async function handleEdit(record: Recordable) {
+      console.log("The record is:"+record)
         openModal(true, {
             record,
             isUpdate: true,

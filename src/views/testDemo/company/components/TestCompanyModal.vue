@@ -14,10 +14,10 @@
           <button @click="deleteData">删除</button>
           <button @click="onGetData">编辑</button>
           <!-- 自定义弹窗组件 -->
-          <BasicModal @register="registerModal2" title="新增员工"
+          <BasicModal  @register="registerModal2" title="新增员工"
                       :showCancelBtn="false" :showOkBtn="false" >
-            <!-- 自定义表单 -->
-            <BasicForm @register="registerForm2" @submit="submitUpdate" >
+            <!-- 自定义表单：新增一个员工 -->
+            <BasicForm @register="registerForm2" v-if="addNew" @submit="submitUpdate" >
               <template #formFooter>
                 <div style="margin: 0 auto">
                   <a-button type="primary" @click="submitUpdate" class="mr-2"> 保存</a-button>
@@ -25,6 +25,16 @@
                 </div>
               </template>
             </BasicForm>
+            <!--编辑表单-->
+            <BasicForm @register="registerForm3" v-if="editOne" @submit="submitUpdate" >
+              <template #formFooter>
+                <div style="margin: 0 auto">
+                  <a-button type="primary" @click="submitUpdate" class="mr-2"> 保存2</a-button>
+                  <a-button type="error" @click="resetUpdate" class="mr-2"> 重置2 </a-button>
+                </div>
+              </template>
+            </BasicForm>
+
           </BasicModal>
         </div>
         <JVxeTable
@@ -59,6 +69,7 @@
     import {defHttp} from "@/utils/http/axios";
     import dayjs from "dayjs";
     import {array} from "vue-types";
+    import {TableAction} from "@/components/Table";
 
     const dialogVisible = ref(false);
     const message = ref("Message");
@@ -69,6 +80,8 @@
     });
 
     let companyId= "";
+    let addNew=false;
+    let editOne=false;
 
     // Emits声明
     const emit = defineEmits(['register','success']);
@@ -84,9 +97,79 @@
           dataSource: [],
           columns:testCompanyEmployeeColumns
     })
-    //自定义表单字段
+    /**自定义表单字段**/
+    //新增表单
     const formSchemas: FormSchema[] = [
       {
+        label: '员工姓名',
+        field: 'name',
+        component: 'Input',
+      },
+      {
+        label: '员工Id',
+        field: 'Id',
+        component: 'Input',
+      },
+      {
+        label: '入职部门',
+        field: 'department',
+        component: 'Input',
+      },
+      {
+        label: '头像上传',
+        field: 'uploadImage',
+        component: 'JImageUpload',
+        componentProps: {
+          //按钮显示文字
+          text:'图片上传',
+          //支持两种基本样式picture和picture-card
+          listType:'picture-card',
+          //用于控制文件上传的业务路径,默认temp
+          bizPath:'temp',
+          //是否禁用
+          disabled:false,
+          //最大上传数量
+          fileMax:1,
+        },
+      },
+      {
+        label: '性别',
+        field: 'sex',
+        component: 'Select',
+        //填写组件Select的属性
+        componentProps: {
+          options: [
+            { label: '男', value: 1 },
+            { label: '女', value: 2 },
+            { label: '未知', value: 3 },
+          ],
+        },
+        //默认值
+        defaultValue: 3,
+      },
+      {
+        label: '入职时间',
+        field: 'dateSelect',
+        component: 'DatePicker',
+        componentProps: {
+          //日期格式化，页面上显示的值
+          format:'YYYY-MM-DD',
+          //返回值格式化（绑定值的格式）
+          valueFormat:'YYYY-MM-DD',
+          //是否显示今天按钮
+          showToday:true,
+        },
+      },
+      {
+        label: '备注',
+        field: 'tinymce',
+        component: 'JEditor',
+        defaultValue: '备注信息',
+      },
+    ];
+    //编辑表单
+    const formSchemas3: FormSchema[] = [
+     {
         label: '员工姓名',
         field: 'name',
         component: 'Input',
@@ -160,13 +243,27 @@
     const [registerModal2, { openModal }] = useModal();
 
     /**
-     * BasicForm绑定注册;
+     * registerForm2，BasicForm绑定注册;
+     * 用于新增员工
      */
     const [registerForm2,{getFieldsValue}] = useForm({
       //注册表单列
       schemas: formSchemas,
       showResetButton: true, //是否显示重置按钮
       resetButtonOptions:{text:"重置2", preIcon: '' },
+      submitButtonOptions: { text: '保存', preIcon: '' },
+      actionColOptions: { span: 17 },
+      //隐藏操作按钮
+      showActionButtonGroup: false,
+    });
+
+    /**
+     * registerForm3，BasicForm绑定注册;
+     * 用于编辑员工
+     */
+    const [registerForm3,{updateSchema, resetSchema}] = useForm({
+      //注册表单列
+      schemas: formSchemas3,
       submitButtonOptions: { text: '保存', preIcon: '' },
       actionColOptions: { span: 17 },
       //隐藏操作按钮
@@ -188,6 +285,8 @@
      * 打开弹窗
      */
     async function openPopup() {
+      addNew = true
+      editOne = false
       //详见 BasicModal模块
       openModal(true, {});// data: 传递到子组件的数据
     }
@@ -198,7 +297,7 @@
       //详见 BasicModal模块
       openModal(true, {});// data: 传递到子组件的数据
     }
-    /** 获取row, 删除row*/
+    /** 删除员工信息：获取row, 删除row*/
     function deleteData() {
       const values = testCompanyEmployee.value!.getSelectionData()
       console.log('删除row---获取值:', { values })
@@ -217,12 +316,39 @@
       }
 
     }
-    /** 获取row, 删除row*/
-    function onGetData() {
-      // testCompanyEmployee.value!.clearSelection()
+    /** 编辑员工信息：获取row, 删除row*/
+    async function onGetData() {
       const values = testCompanyEmployee.value!.getSelectionData()
+      console.log('编辑员工信息，获取值:', { values })
+      if(values.length == 1 ){
+        addNew=false
+        editOne=true
+        let editParams = {
+          id:values[0].id,
+          takingTime:values[0].takingTime,
+          department:values[0].partment,
+        };
+        console.log('params:', { editParams })
+        //TODO: form中显示待修改的内容
+        updateFormValue(editParams);
+        openModal(true, {});// 打开弹窗
 
+      }
+      else{
+        alert("请选择一条编辑的员工信息")
+      }
     }
+
+    /**
+     * 更新表单配置
+     */
+    async function updateFormValue(editParams) {
+      console.log("editParams:",editParams);
+      await setFieldsValue({ Id: editParams.id });
+      console.log("The end");
+     }
+
+
     /**
      * 重置
      */
@@ -247,9 +373,11 @@
         takingTime:fieldsValue.dateSelect,
         partment:fieldsValue.department,
       };
-      console.log(params);
+      console.log("发送的Http请求的params为：",params);
       defHttp.post({url: url, params});
       closeModal();
+      addNew=false
+      editOne=false
     }
 
     /**
@@ -258,7 +386,7 @@
      //表单赋值
     const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) => {
         console.log("The data is");
-        console.log(data.record.id);
+        console.log(data.record);
         companyId = data.record.id;
         //重置表单
         await reset();

@@ -141,6 +141,7 @@
       * 操作栏
       */
   function getTableAction(record){
+     console.log("The record is:",record);
        return [
          {
            label: '编辑',
