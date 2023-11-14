@@ -11,11 +11,9 @@
       <a-tab-pane tab="入职的员工" key="testCompanyEmployee" :forceRender="true" :style="tabsStyle">
         <div>
           <button @click="openPopup">新增</button>
-          <button @click="deleteData">删除</button>
-          <button @click="onGetData">编辑</button>
           <!-- 自定义弹窗组件 -->
           <BasicModal  @register="registerModal2" title="新增员工"
-                      :showCancelBtn="false" :showOkBtn="false" >
+                       :showCancelBtn="false" :showOkBtn="false" >
             <!-- 自定义表单：新增一个员工 -->
             <BasicForm @register="registerForm2" v-if="addNew" @submit="submitUpdate" >
               <template #formFooter>
@@ -34,22 +32,16 @@
                 </div>
               </template>
             </BasicForm>
-
           </BasicModal>
         </div>
-        <JVxeTable
-          keep-source
-          resizable
-          ref="testCompanyEmployee"
-          :loading="testCompanyEmployeeTable.loading"
-          :columns="testCompanyEmployeeTable.columns"
-          :dataSource="testCompanyEmployeeTable.dataSource"
-          :height="340"
-          :disabled="formDisabled"
-          :rowNumber="true"
-          :rowSelection="true"
-          :toolbar="false"
-          />
+
+        <!--定义表格-->
+        <BasicTable @register="registerTable">
+          <!--操作栏-->
+          <template #action="{ record }">
+            <TableAction :actions="getTableAction(record)" />
+          </template>
+        </BasicTable>
       </a-tab-pane>
     </a-tabs>
   </BasicModal>
@@ -69,7 +61,92 @@
     import {defHttp} from "@/utils/http/axios";
     import dayjs from "dayjs";
     import {array} from "vue-types";
-    import {TableAction} from "@/components/Table";
+    import { ActionItem, BasicColumn, BasicTable, TableAction } from '/@/components/Table';
+    import { useListPage } from '/@/hooks/system/useListPage';
+
+
+    //定义表格列字段
+    const columns: BasicColumn[] = [
+      {
+        title: 'ID',
+        dataIndex: 'employeeId',
+        key: 'employeeId',
+      },
+      {
+        title: '入职日期',
+        dataIndex: 'takingTime',
+        key: 'takingTime',
+      },
+      {
+        title: '入职部门',
+        dataIndex: 'partment',
+        key: 'partment',
+      },
+    ];
+
+    //ajax请求api接口
+    const demoListApi = (params) => {
+      params.id = companyId;
+      let ans = defHttp.get({ url: '/company/testCompany/queryTestCompanyEmployeeByMainId',params });
+      console.log("The ans is :",ans);
+      return ans;
+    };
+
+    /** useListPage 是整个框架的核心用于表格渲染，里边封装了很多公共方法；
+     * 平台通过此封装，简化了代码，支持自定义扩展*/
+    // 通过hook useListPage渲染表格（设置dataSource、columns、actionColumn等参数）
+    const { tableContext } = useListPage({
+        designScope: 'basic-table-demo',
+        tableProps: {
+          title: '用户列表',
+          api:demoListApi,
+          columns: columns,
+          size: 'small',
+          actionColumn: {
+            width: 120,
+          },
+        },
+      });
+    // BasicTable绑定注册
+    const [registerTable] = tableContext;
+    /**
+     * 操作栏
+     */
+    function getTableAction(record): ActionItem[] {
+      return [
+        {
+          label: '编辑',
+          onClick: handleEdit.bind(null, record),
+        },
+        {
+          label: '删除',
+          onClick: handleDelete.bind(null, record),
+        },
+      ];
+    }
+
+    function handleEdit(record) {
+      console.log("handleEdit:",record );
+      editOne = true
+      addNew = false
+      openModal(true, {
+        record,
+        isUpdate: true,
+        showFooter: true,
+      });
+    }
+
+
+    function handleDelete(record){
+      console.log('handleDelete:', { record })
+      let params = {
+        id:record.id,
+      };
+      console.log('handleDelete:', { params })
+      let url = "/company/testCompany/deleteOneEmployee";
+      defHttp.post({url: url, params});
+      closeModal();
+    }
 
     const dialogVisible = ref(false);
     const message = ref("Message");
@@ -314,7 +391,6 @@
         defHttp.post({url: url, params});
         closeModal();
       }
-
     }
     /** 编辑员工信息：获取row, 删除row*/
     async function onGetData() {
