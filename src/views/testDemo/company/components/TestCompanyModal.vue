@@ -12,7 +12,7 @@
         <div>
           <button @click="openPopup">新增</button>
           <!-- 自定义弹窗组件 -->
-          <BasicModal  @register="registerModal2" title="新增员工"
+          <BasicModal  @register="registerModal2" title="新增/编辑员工"
                        :showCancelBtn="false" :showOkBtn="false" >
             <!-- 自定义表单：新增一个员工 -->
             <BasicForm @register="registerForm2" v-if="addNew" @submit="submitUpdate" >
@@ -24,7 +24,7 @@
               </template>
             </BasicForm>
             <!--编辑表单-->
-            <BasicForm @register="registerForm3" v-if="editOne" @submit="submitUpdate" >
+            <BasicForm v-bind="$attrs" @register="registerForm3" v-if="editOne" @submit="submitUpdate" >
               <template #formFooter>
                 <div style="margin: 0 auto">
                   <a-button type="primary" @click="submitUpdate" class="mr-2"> 保存2</a-button>
@@ -60,7 +60,7 @@
     import {rules} from "@/utils/helper/validator";
     import {defHttp} from "@/utils/http/axios";
     import dayjs from "dayjs";
-    import {array} from "vue-types";
+    import {array, object} from "vue-types";
     import { ActionItem, BasicColumn, BasicTable, TableAction } from '/@/components/Table';
     import { useListPage } from '/@/hooks/system/useListPage';
 
@@ -129,6 +129,11 @@
       console.log("handleEdit:",record );
       editOne = true
       addNew = false
+      //Todo 如何回显消息
+      let editParams ={
+        id: record.id
+      };
+      updateFormValue(editParams);
       openModal(true, {
         record,
         isUpdate: true,
@@ -136,6 +141,54 @@
       });
     }
 
+    /**
+     * 更新表单配置
+     */
+    async function updateFormValue(editParams) {
+      console.log("editParams:",editParams);
+      //todo：获得editParmas中的id对应的项
+      getRecord(editParams);
+      console.log("ansResule:",ansResule);
+      //await setFieldsValue({ name:"李四" });
+      await updateSchema([
+          {
+              //字段必填
+              field: 'name',
+              componentProps:{
+                  prefix:'张三',
+                  showCount: true
+              },
+          },
+          {
+              field: 'id',
+              componentProps:{
+                  prefix:ansResule.id,
+                  showCount: true
+              },
+          },
+          {
+              field: 'department',
+              componentProps:{
+                  prefix:ansResule.partment,
+                  showCount: true
+              },
+          },
+      ]);
+      console.log("The end");
+    }
+    let ansResule;
+    function getRecord(editParams){
+        let url = "/company/testCompany/queryTestCompanyEmployeeById";
+        let params={
+            id:editParams.id
+        };
+        let ans = defHttp.get({url: url, params});
+        ans.then(function(result) {
+            // 异步操作成功时的处理代码
+            console.log("----ans: ",result.id);
+            ansResule= result;
+        });
+    }
 
     function handleDelete(record){
       console.log('handleDelete:', { record })
@@ -174,6 +227,11 @@
           dataSource: [],
           columns:testCompanyEmployeeColumns
     })
+
+
+
+
+
     /**自定义表单字段**/
     //新增表单
     const formSchemas: FormSchema[] = [
@@ -253,7 +311,7 @@
       },
       {
         label: '员工Id',
-        field: 'Id',
+        field: 'id',
         component: 'Input',
       },
       {
@@ -406,7 +464,7 @@
         };
         console.log('params:', { editParams })
         //TODO: form中显示待修改的内容
-        updateFormValue(editParams);
+        //updateFormValue(editParams);
         openModal(true, {});// 打开弹窗
 
       }
@@ -414,15 +472,6 @@
         alert("请选择一条编辑的员工信息")
       }
     }
-
-    /**
-     * 更新表单配置
-     */
-    async function updateFormValue(editParams) {
-      console.log("editParams:",editParams);
-      await setFieldsValue({ Id: editParams.id });
-      console.log("The end");
-     }
 
 
     /**
