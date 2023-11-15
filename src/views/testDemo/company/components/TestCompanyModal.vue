@@ -9,9 +9,9 @@
      </a-tab-pane>
      <!--子表单区域 -->
       <a-tab-pane tab="入职的员工" key="testCompanyEmployee" :forceRender="true" :style="tabsStyle">
+        <!-- 自定义弹窗组件 -->
         <div>
-          <button @click="openPopup">新增</button>
-          <!-- 自定义弹窗组件 -->
+<!--          <button @click="openPopup">新增</button>-->
           <BasicModal  @register="registerModal2" title="新增/编辑员工"
                        :showCancelBtn="false" :showOkBtn="false" >
             <!-- 自定义表单：新增一个员工 -->
@@ -34,12 +34,14 @@
             </BasicForm>
           </BasicModal>
         </div>
-
         <!--定义表格-->
         <BasicTable @register="registerTable">
           <!--操作栏-->
           <template #action="{ record }">
             <TableAction :actions="getTableAction(record)" />
+          </template>
+          <template #toolbar>
+            <a-button type="primary" @click="openPopup"> 新增 </a-button>
           </template>
         </BasicTable>
       </a-tab-pane>
@@ -98,10 +100,14 @@
     const { tableContext } = useListPage({
         designScope: 'basic-table-demo',
         tableProps: {
-          title: '用户列表',
+          title: '员工列表',
           api:demoListApi,
           columns: columns,
           size: 'small',
+          // 是否显示序号列
+          showIndexColumn: true,
+
+          striped:true,
           actionColumn: {
             width: 120,
           },
