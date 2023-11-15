@@ -24,7 +24,7 @@
               </template>
             </BasicForm>
             <!--编辑表单-->
-            <BasicForm v-bind="$attrs" @register="registerForm3" v-if="editOne" @submit="submitUpdate" >
+            <BasicForm v-bind="$attrs"  @register="registerForm2" v-if="editOne" @submit="submitUpdate" >
               <template #formFooter>
                 <div style="margin: 0 auto">
                   <a-button type="primary" @click="submitUpdate" class="mr-2"> 保存2</a-button>
@@ -129,7 +129,7 @@
       console.log("handleEdit:",record );
       editOne = true
       addNew = false
-      //Todo 如何回显消息
+      //回显信息
       let editParams ={
         id: record.id
       };
@@ -139,6 +139,7 @@
         isUpdate: true,
         showFooter: true,
       });
+      console.log("It is the end of handleEdit" );
     }
 
     /**
@@ -160,9 +161,9 @@
               },
           },
           {
-              field: 'id',
+              field: 'Id',
               componentProps:{
-                  prefix:ansResule.id,
+                  prefix:ansResule.employeeId,
                   showCount: true
               },
           },
@@ -171,6 +172,13 @@
               componentProps:{
                   prefix:ansResule.partment,
                   showCount: true
+              },
+          },
+          {
+              field: 'dateSelect',
+              componentProps:{
+                prefix:ansResule.takingTime,
+                showCount: true
               },
           },
       ]);
@@ -304,14 +312,14 @@
     ];
     //编辑表单
     const formSchemas3: FormSchema[] = [
-     {
+      {
         label: '员工姓名',
         field: 'name',
         component: 'Input',
       },
       {
         label: '员工Id',
-        field: 'id',
+        field: 'Id',
         component: 'Input',
       },
       {
@@ -381,7 +389,7 @@
      * registerForm2，BasicForm绑定注册;
      * 用于新增员工
      */
-    const [registerForm2,{getFieldsValue}] = useForm({
+    const [registerForm2,{getFieldsValue,updateSchema}] = useForm({
       //注册表单列
       schemas: formSchemas,
       showResetButton: true, //是否显示重置按钮
@@ -396,9 +404,11 @@
      * registerForm3，BasicForm绑定注册;
      * 用于编辑员工
      */
-    const [registerForm3,{updateSchema, resetSchema}] = useForm({
+    const [registerForm3,{ resetSchema}] = useForm({
       //注册表单列
       schemas: formSchemas3,
+      showResetButton: true, //是否显示重置按钮
+      resetButtonOptions:{text:"重置2", preIcon: '' },
       submitButtonOptions: { text: '保存', preIcon: '' },
       actionColOptions: { span: 17 },
       //隐藏操作按钮
@@ -488,18 +498,50 @@
      */
     async function submitUpdate(values: any) {
       //获取所有值
-      let fieldsValue = await getFieldsValue();
-      console.log('提交按钮数据::::', values);
+      let fieldsValue = getFieldsValue();
       console.log('提交按钮数据fieldsValue::::', fieldsValue);
-      let url = "/company/testCompany/addOneEmployee";
-      let params = {
-        id:companyId,
-        employeeId:fieldsValue.Id,
-        takingTime:fieldsValue.dateSelect,
-        partment:fieldsValue.department,
-      };
-      console.log("发送的Http请求的params为：",params);
-      defHttp.post({url: url, params});
+      console.log('Result::::', ansResule);
+      console.log('addNew::::', addNew);
+      console.log('editOne::::', editOne);
+
+      if(addNew){
+        let url = "/company/testCompany/addOneEmployee";
+        let params = {
+          id:companyId,
+          employeeId:fieldsValue.Id,
+          takingTime:fieldsValue.dateSelect,
+          partment:fieldsValue.department,
+        };
+        console.log("发送的Http请求的params为：",params);
+        defHttp.post({url: url, params});
+      }
+      if(editOne){
+        if(typeof(fieldsValue)=="undefined"){
+          console.log("没数据更改")
+        }else{
+          console.log("有数据更改",Object.keys(fieldsValue))
+          let params = {
+            id:ansResule.id,
+            employeeId:null,
+            takingTime:null,
+            partment:null,
+          };
+          if( Object.keys(fieldsValue).indexOf("Id")){
+            params.employeeId = fieldsValue["Id"];
+          }
+          if(Object.keys(fieldsValue).indexOf("dateSelect")){
+            params.takingTime = fieldsValue["dateSelect"];
+          }
+          if(Object.keys(fieldsValue).indexOf("department")){
+            params.partment = fieldsValue["department"];
+          }
+          console.log("发送的Http请求的params为:",params);
+          let url = "/company/testCompany/editTestCompanyEmployeeById";
+          defHttp.post({url: url, params});
+        }
+
+      }
+
       closeModal();
       addNew=false
       editOne=false
